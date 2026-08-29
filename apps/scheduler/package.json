@@ -1,0 +1,19 @@
+{
+  "name": "@visionqa/scheduler",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "dev": "tsx watch src/main.ts",
+    "build": "tsc -p tsconfig.json",
+    "lint": "eslint .",
+    "typecheck": "tsc --noEmit",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@visionqa/queue": "workspace:*",
+    "tsx": "^4.19.2"
+  },
+  "devDependencies": {
+    "typescript": "^5.7.2"
+  }
+}

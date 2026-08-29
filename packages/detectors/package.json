@@ -1,0 +1,16 @@
+{
+  "name": "@visionqa/detectors",
+  "version": "0.1.0",
+  "private": true,
+  "type": "module",
+  "scripts": {
+    "build": "tsc -p tsconfig.json",
+    "typecheck": "tsc --noEmit",
+    "lint": "eslint .",
+    "test": "vitest run"
+  },
+  "dependencies": {
+    "@visionqa/contracts": "workspace:*",
+    "@visionqa/detector-sdk": "workspace:*"
+  }
+}

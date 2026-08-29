@@ -1,0 +1,1 @@
+export { InMemoryDetectorRegistry } from './registry';

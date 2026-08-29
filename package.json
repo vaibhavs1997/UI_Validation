@@ -1,0 +1,29 @@
+{
+  "name": "visionqa",
+  "version": "0.1.0",
+  "private": true,
+  "packageManager": "pnpm@9.15.0",
+  "scripts": {
+    "dev": "turbo dev",
+    "build": "pnpm -r --if-present build",
+    "lint": "pnpm -r --if-present lint",
+    "typecheck": "pnpm -r --if-present typecheck",
+    "test": "vitest run packages/network-policy/test",
+    "test:e2e": "playwright test",
+    "format": "prettier --write .",
+    "format:check": "prettier --check .",
+    "db:generate": "pnpm --filter @visionqa/database db:generate",
+    "db:migrate": "pnpm --filter @visionqa/database db:migrate",
+    "db:studio": "pnpm --filter @visionqa/database db:studio"
+  },
+  "devDependencies": {
+    "@playwright/test": "^1.49.1",
+    "eslint": "^9.17.0",
+    "typescript-eslint": "^8.18.0",
+    "@types/node": "^22.10.2",
+    "prettier": "^3.4.2",
+    "turbo": "^2.3.3",
+    "typescript": "^5.7.2",
+    "vitest": "^2.1.8"
+  }
+}

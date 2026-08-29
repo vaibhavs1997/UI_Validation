@@ -1,0 +1,220 @@
+generator client {
+  provider = "prisma-client-js"
+}
+
+datasource db {
+  provider = "postgresql"
+  url      = env("DATABASE_URL")
+}
+
+enum ScanStatus {
+  QUEUED
+  RUNNING
+  COMPLETED
+  FAILED
+  CANCELLED
+}
+
+enum IssueStatus {
+  OPEN
+  ACKNOWLEDGED
+  RESOLVED
+  IGNORED
+}
+
+model Organization {
+  id          String       @id @default(uuid())
+  memberships Membership[]
+  projects    Project[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model User {
+  id          String       @id @default(uuid())
+  email       String       @unique
+  name        String?
+  memberships Membership[]
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
+}
+
+model Membership {
+  id             String       @id @default(uuid())
+  organizationId String
+  userId         String
+  role           String
+  organization   Organization @relation(fields: [organizationId], references: [id])
+  user           User         @relation(fields: [userId], references: [id])
+
+  @@unique([organizationId, userId])
+}
+
+model Project {
+  id             String        @id @default(uuid())
+  organizationId String
+  name           String
+  environments   Environment[]
+  scanProfiles   ScanProfile[]
+  scans          Scan[]
+  organization   Organization  @relation(fields: [organizationId], references: [id])
+  createdAt      DateTime      @default(now())
+  updatedAt      DateTime      @updatedAt
+}
+
+model Environment {
+  id        String   @id @default(uuid())
+  projectId String
+  name      String
+  baseUrl   String
+  project   Project  @relation(fields: [projectId], references: [id])
+  scans     Scan[]
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model ScanProfile {
+  id        String  @id @default(uuid())
+  projectId String
+  name      String
+  config    Json
+  project   Project @relation(fields: [projectId], references: [id])
+}
+
+model Scan {
+  id            String            @id @default(uuid())
+  projectId     String
+  environmentId String
+  status        ScanStatus        @default(QUEUED)
+  type          String
+  module        String?
+  project       Project           @relation(fields: [projectId], references: [id])
+  environment   Environment       @relation(fields: [environmentId], references: [id])
+  jobs          ScanJob[]
+  pages         PageExecution[]
+  issues        IssueOccurrence[]
+  reports       Report[]
+  createdAt     DateTime          @default(now())
+  updatedAt     DateTime          @updatedAt
+}
+
+model ScanJob {
+  id        String   @id @default(uuid())
+  scanId    String
+  queue     String
+  status    String
+  payload   Json
+  scan      Scan     @relation(fields: [scanId], references: [id])
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model PageExecution {
+  id        String              @id @default(uuid())
+  scanId    String
+  url       String
+  status    String
+  scan      Scan                @relation(fields: [scanId], references: [id])
+  detectors DetectorExecution[]
+}
+
+model DetectorExecution {
+  id              String        @id @default(uuid())
+  pageExecutionId String
+  detectorId      String
+  status          String
+  result          Json?
+  pageExecution   PageExecution @relation(fields: [pageExecutionId], references: [id])
+}
+
+model CrawledPage {
+  id     String  @id @default(uuid())
+  scanId String
+  url    String
+  status Int?
+  title  String?
+}
+
+model UrlEdge {
+  id      String @id @default(uuid())
+  scanId  String
+  fromUrl String
+  toUrl   String
+}
+
+model Issue {
+  id            String               @id @default(uuid())
+  fingerprint   String               @unique
+  detectorId    String
+  title         String
+  severity      String
+  status        IssueStatus          @default(OPEN)
+  occurrences   IssueOccurrence[]
+  statusHistory IssueStatusHistory[]
+  createdAt     DateTime             @default(now())
+  updatedAt     DateTime             @updatedAt
+}
+
+model IssueOccurrence {
+  id        String     @id @default(uuid())
+  issueId   String
+  scanId    String
+  url       String
+  evidence  Evidence[]
+  issue     Issue      @relation(fields: [issueId], references: [id])
+  scan      Scan       @relation(fields: [scanId], references: [id])
+  createdAt DateTime   @default(now())
+}
+
+model IssueStatusHistory {
+  id        String      @id @default(uuid())
+  issueId   String
+  status    IssueStatus
+  issue     Issue       @relation(fields: [issueId], references: [id])
+  createdAt DateTime    @default(now())
+}
+
+model Evidence {
+  id           String          @id @default(uuid())
+  occurrenceId String
+  kind         String
+  storageKey   String?
+  metadata     Json?
+  occurrence   IssueOccurrence @relation(fields: [occurrenceId], references: [id])
+  createdAt    DateTime        @default(now())
+}
+
+model CustomCheck {
+  id         String @id @default(uuid())
+  projectId  String
+  name       String
+  definition Json
+}
+
+model Schedule {
+  id        String   @id @default(uuid())
+  projectId String
+  cron      String
+  enabled   Boolean  @default(true)
+  config    Json
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+}
+
+model Report {
+  id        String   @id @default(uuid())
+  scanId    String
+  format    String
+  status    String
+  scan      Scan     @relation(fields: [scanId], references: [id])
+  createdAt DateTime @default(now())
+}
+
+model Integration {
+  id             String   @id @default(uuid())
+  organizationId String
+  provider       String
+  config         Json
+  createdAt      DateTime @default(now())
+  updatedAt      DateTime @updatedAt
+}
