@@ -1,6 +1,76 @@
 @import 'tailwindcss';
 
-:root { --background: #f6f7fb; --foreground: #172033; }
+:root { --background: #fffaff; --foreground: #24152b; }
 * { box-sizing: border-box; }
 body { margin: 0; background: var(--background); color: var(--foreground); font-family: Arial, sans-serif; }
 a { color: inherit; text-decoration: none; }
+button, input { font: inherit; }
+
+.auth-fluid-shell {
+  position: relative;
+  isolation: isolate;
+  background: linear-gradient(135deg, #fffaff 0%, #f8eef9 48%, #fdf4ff 100%);
+}
+.auth-fluid-shell::before {
+  position: absolute;
+  inset: 0;
+  background: linear-gradient(110deg, rgba(255,255,255,0.56), transparent 42%, rgba(255,255,255,0.35));
+  content: '';
+  pointer-events: none;
+}
+.fluid-orb {
+  position: absolute;
+  border: 1px solid rgba(255,255,255,0.76);
+  border-radius: 999px;
+  filter: blur(1px);
+  pointer-events: none;
+}
+.fluid-orb-one { top: -9rem; right: 7%; width: 27rem; height: 27rem; background: rgba(173,8,209,0.12); box-shadow: inset 20px 20px 50px rgba(255,255,255,0.45), 0 20px 60px rgba(173,8,209,0.08); animation: fluid-drift-one 16s ease-in-out infinite alternate; }
+.fluid-orb-two { bottom: -11rem; left: 7%; width: 30rem; height: 30rem; background: rgba(218,104,231,0.13); box-shadow: inset -20px -20px 60px rgba(255,255,255,0.4), 0 20px 60px rgba(173,8,209,0.08); animation: fluid-drift-two 19s ease-in-out infinite alternate; }
+.fluid-orb-three { top: 42%; left: 44%; width: 8rem; height: 8rem; background: rgba(255,255,255,0.26); box-shadow: inset 8px 8px 18px rgba(255,255,255,0.72); animation: fluid-drift-three 13s ease-in-out infinite alternate; }
+.glass-brand-panel { background: linear-gradient(145deg, rgba(38,18,49,0.98), rgba(70,24,82,0.94)); border: 1px solid rgba(255,255,255,0.16); backdrop-filter: blur(20px); }
+.glass-form-panel { background: linear-gradient(145deg, rgba(255,255,255,0.78), rgba(255,255,255,0.52)); border-color: rgba(255,255,255,0.9); color: #6f3a7c; }
+@keyframes fluid-drift-one { to { transform: translate(-20px, 18px) scale(1.04); } }
+@keyframes fluid-drift-two { to { transform: translate(25px, -14px) scale(0.97); } }
+@keyframes fluid-drift-three { to { transform: translate(12px, -22px); } }
+@media (prefers-reduced-motion: reduce) { .fluid-orb-one, .fluid-orb-two, .fluid-orb-three { animation: none; } }
+
+.liquid-control {
+  border: 1px solid rgba(173, 8, 209, 0.34);
+  background: linear-gradient(135deg, rgba(255,255,255,0.84), rgba(238,204,244,0.72) 58%, rgba(255,255,255,0.78));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.98), inset 0 -8px 18px rgba(173,8,209,0.05), 0 8px 24px rgba(125, 32, 143, 0.1);
+  backdrop-filter: blur(14px);
+}
+.liquid-control:hover {
+  border-color: rgba(173, 8, 209, 0.5);
+  background: linear-gradient(135deg, rgba(255,255,255,0.9), rgba(236,195,243,0.76) 58%, rgba(255,255,255,0.82));
+}
+.liquid-control:focus {
+  border-color: #ad08d1;
+  background: linear-gradient(135deg, rgba(255,255,255,0.94), rgba(232,184,241,0.78) 58%, rgba(255,255,255,0.86));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.98), inset 0 -8px 18px rgba(173,8,209,0.08), 0 0 0 4px rgba(173,8,209,0.16), 0 10px 26px rgba(137, 32, 161, 0.14);
+}
+.liquid-control::selection {
+  background: rgba(173,8,209,0.22);
+}
+.liquid-primary {
+  position: relative;
+  overflow: hidden;
+  background: linear-gradient(115deg, #8d05ac 0%, #ad08d1 48%, #d44bea 100%);
+  box-shadow: 0 12px 25px rgba(145, 20, 174, 0.27), inset 0 1px 0 rgba(255,255,255,0.35);
+}
+.liquid-primary::before {
+  position: absolute;
+  inset: 1px 18% auto 1px;
+  height: 45%;
+  border-radius: 999px;
+  background: linear-gradient(90deg, rgba(255,255,255,0.3), rgba(255,255,255,0));
+  content: '';
+  pointer-events: none;
+}
+.liquid-primary:hover { background: linear-gradient(115deg, #790493 0%, #9907b8 48%, #c13dda 100%); }
+.liquid-social {
+  border: 1px solid rgba(173, 8, 209, 0.18);
+  background: linear-gradient(135deg, rgba(255,255,255,0.82), rgba(249,238,252,0.68));
+  box-shadow: inset 0 1px 0 rgba(255,255,255,0.9), 0 6px 18px rgba(125,32,143,0.05);
+}

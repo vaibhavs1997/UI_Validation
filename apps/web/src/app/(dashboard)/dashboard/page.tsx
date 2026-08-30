@@ -1,12 +1,11 @@
+'use client';
+import { NoProjectDashboard, ProjectGettingStartedDashboard } from '@/features/projects/components/ProjectDashboardStates';
+import { useProjects } from '@/features/projects/project-context';
+
 export default function DashboardPage() {
-  return (
-    <section>
-      <p style={{ color: '#64708a' }}>OVERVIEW</p>
-      <h1>QA dashboard</h1>
-      <p>
-        Run focused checks against a project environment and track findings over
-        time.
-      </p>
-    </section>
-  );
+  const { projects, selectedProject, loading, error } = useProjects();
+  if (loading) return <section aria-busy="true"><p className="text-[#76527f]">Loading workspace…</p></section>;
+  if (error) return <section><p className="text-red-700">{error}</p><p className="mt-2 text-[#76527f]">Refresh the page to try again.</p></section>;
+  if (!projects.length || !selectedProject) return <NoProjectDashboard />;
+  return <ProjectGettingStartedDashboard project={selectedProject} />;
 }
