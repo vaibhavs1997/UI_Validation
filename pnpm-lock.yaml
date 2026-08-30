@@ -59,6 +59,12 @@ importers:
       '@visionqa/database':
         specifier: workspace:*
         version: link:../../packages/database
+      '@visionqa/detectors':
+        specifier: workspace:*
+        version: link:../../packages/detectors
+      '@visionqa/queue':
+        specifier: workspace:*
+        version: link:../../packages/queue
       bcryptjs:
         specifier: 2.4.3
         version: 2.4.3
@@ -213,6 +219,9 @@ importers:
       '@prisma/client':
         specifier: ^6.1.0
         version: 6.19.3(prisma@6.19.3(typescript@5.9.3))(typescript@5.9.3)
+      '@visionqa/contracts':
+        specifier: workspace:*
+        version: link:../contracts
       firebase-admin:
         specifier: ^14.3.0
         version: 14.3.0(@firebase/app-compat@0.5.17)(@firebase/app@0.16.1)

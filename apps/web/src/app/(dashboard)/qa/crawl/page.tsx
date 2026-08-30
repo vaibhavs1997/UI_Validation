@@ -1,4 +1,10 @@
-import { PlaceholderPage } from '@/components/common/PlaceholderPage';
-export default function Page() {
-  return <PlaceholderPage title="Crawl" />;
-}
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import type { Scan } from '@visionqa/contracts';
+import { ActiveQaTarget } from '@/features/projects/components/ActiveQaTarget';
+import { useProjects } from '@/features/projects/project-context';
+import { createScan } from '@/features/scans/scan.service';
+import { ScanStatusBadge } from '@/features/scans/components/ScanStatusBadge';
+
+export default function CrawlPage() { const { selectedProject, selectedEnvironment } = useProjects(); const [selected, setSelected] = useState(['crawl']); const [scan, setScan] = useState<Scan | null>(null); const [error, setError] = useState<string | null>(null); const [submitting, setSubmitting] = useState(false); const toggle = (id: string) => setSelected((current) => current.includes(id) ? current.filter((item) => item !== id) : [...current, id]); const start = async () => { if (!selectedProject || !selectedEnvironment || !selected.length) return; setSubmitting(true); setError(null); try { setScan(await createScan(selectedProject.id, { environmentId: selectedEnvironment.id, module: 'crawl-site-structure', checks: selected })); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to create scan.'); } finally { setSubmitting(false); } }; return <section className="scan-page"><p className="dashboard-eyebrow">QA CHECK · CRAWL</p><h1 className="dashboard-page-title">Crawl &amp; Site Structure</h1><p className="dashboard-lead">Discover pages and site structure for the active environment.</p><ActiveQaTarget /><div className="scan-config-card"><h2>Select checks</h2>{[['crawl', 'Crawl website', true], ['robots', 'Robots.txt', false], ['sitemap', 'Sitemap', false]].map(([id, label, available]) => <label className={`scan-check ${available ? '' : 'scan-check-disabled'}`} key={id as string}><input type="checkbox" checked={selected.includes(id as string)} disabled={!available} onChange={() => toggle(id as string)} /> <span>{label as string}</span>{!available && <small>Planned</small>}</label>)}<button className="dashboard-primary-button" type="button" disabled={submitting || !selectedProject || !selectedEnvironment || !selected.length} onClick={() => void start()}>{submitting ? 'Queueing…' : 'Start Crawl'}</button>{error && <p className="scan-error" role="alert">{error}</p>}</div>{scan && <div className="scan-confirmation" role="status"><div><h2>Scan queued</h2><p>Scan ID: <code>{scan.id}</code></p><p>Environment: {selectedEnvironment?.name} · Selected checks: {scan.checks.join(', ')}</p></div><ScanStatusBadge status={scan.status} /><Link className="dashboard-card-action" href={`/scans/${scan.id}`}>View scan <b>→</b></Link></div>}</section>; }

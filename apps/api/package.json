@@ -20,6 +20,8 @@
     "@visionqa/config": "workspace:*",
     "@visionqa/contracts": "workspace:*",
     "@visionqa/database": "workspace:*",
+    "@visionqa/detectors": "workspace:*",
+    "@visionqa/queue": "workspace:*",
     "bcryptjs": "2.4.3",
     "dotenv": "^17.4.2",
     "fastify": "^5.1.0",

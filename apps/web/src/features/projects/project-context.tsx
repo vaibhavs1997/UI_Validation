@@ -1,17 +1,25 @@
 'use client';
 import { createContext, useCallback, useContext, useEffect, useMemo, useState } from 'react';
-import type { Project } from '@visionqa/contracts';
-import { getProjects } from './project.service';
+import type { Environment, Project } from '@visionqa/contracts';
+import { createEnvironment, deleteEnvironment, getProjects, updateEnvironment, updateProject } from './project.service';
 
-type ProjectContextValue = { projects: Project[]; selectedProject: Project | null; loading: boolean; error: string | null; selectProject: (id: string) => void; refreshProjects: () => Promise<void> };
+type ProjectContextValue = { projects: Project[]; selectedProject: Project | null; selectedEnvironment: Environment | null; loading: boolean; error: string | null; selectProject: (id: string) => void; selectEnvironment: (id: string) => void; refreshProjects: () => Promise<void>; saveProject: (name: string) => Promise<void>; addEnvironment: (input: Parameters<typeof createEnvironment>[1]) => Promise<void>; saveEnvironment: (id: string, input: Parameters<typeof updateEnvironment>[2]) => Promise<void>; removeEnvironment: (id: string) => Promise<void> };
 const ProjectContext = createContext<ProjectContextValue | null>(null);
 
 export function ProjectProvider({ children }: Readonly<{ children: React.ReactNode }>) {
-  const [projects, setProjects] = useState<Project[]>([]); const [selectedId, setSelectedId] = useState<string | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState<string | null>(null);
+  const [projects, setProjects] = useState<Project[]>([]); const [selectedId, setSelectedId] = useState<string | null>(null); const [selectedEnvironmentId, setSelectedEnvironmentId] = useState<string | null>(null); const [loading, setLoading] = useState(true); const [error, setError] = useState<string | null>(null);
   const refreshProjects = useCallback(async () => { setLoading(true); try { const next = await getProjects(); setProjects(next); setSelectedId((current) => next.some((project) => project.id === current) ? current : next[0]?.id ?? null); setError(null); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to load projects.'); } finally { setLoading(false); } }, []);
   useEffect(() => { void refreshProjects(); }, [refreshProjects]);
-  const selectProject = useCallback((id: string) => { if (projects.some((project) => project.id === id)) setSelectedId(id); }, [projects]);
-  const value = useMemo(() => ({ projects, selectedProject: projects.find((project) => project.id === selectedId) ?? null, loading, error, selectProject, refreshProjects }), [projects, selectedId, loading, error, selectProject, refreshProjects]);
+  const selectedProject = projects.find((project) => project.id === selectedId) ?? null;
+  const environments = selectedProject?.environments ?? [];
+  const selectedEnvironment = environments.find((environment) => environment.id === selectedEnvironmentId) ?? environments.find((environment) => environment.isDefault) ?? environments[0] ?? null;
+  const selectProject = useCallback((id: string) => { if (projects.some((project) => project.id === id)) { setSelectedId(id); setSelectedEnvironmentId(null); } }, [projects]);
+  const selectEnvironment = useCallback((id: string) => { if (environments.some((environment) => environment.id === id)) setSelectedEnvironmentId(id); }, [environments]);
+  const saveProject = useCallback(async (name: string) => { if (!selectedProject) return; const updated = await updateProject(selectedProject.id, { name }); setProjects((current) => current.map((project) => project.id === updated.id ? updated : project)); }, [selectedProject]);
+  const addEnvironment = useCallback(async (input: Parameters<typeof createEnvironment>[1]) => { if (!selectedProject) return; const added = await createEnvironment(selectedProject.id, input); setProjects((current) => current.map((project) => project.id === selectedProject.id ? { ...project, environments: input.isDefault ? [...project.environments.map((environment) => ({ ...environment, isDefault: false })), added] : [...project.environments, added] } : project)); }, [selectedProject]);
+  const saveEnvironment = useCallback(async (id: string, input: Parameters<typeof updateEnvironment>[2]) => { if (!selectedProject) return; const updated = await updateEnvironment(selectedProject.id, id, input); setProjects((current) => current.map((project) => project.id === selectedProject.id ? { ...project, environments: project.environments.map((environment) => input.isDefault ? { ...environment, isDefault: environment.id === id } : environment.id === id ? updated : environment) } : project)); }, [selectedProject]);
+  const removeEnvironment = useCallback(async (id: string) => { if (!selectedProject) return; await deleteEnvironment(selectedProject.id, id); setProjects((current) => current.map((project) => project.id === selectedProject.id ? { ...project, environments: project.environments.filter((environment) => environment.id !== id) } : project)); setSelectedEnvironmentId(null); }, [selectedProject]);
+  const value = useMemo(() => ({ projects, selectedProject, selectedEnvironment, loading, error, selectProject, selectEnvironment, refreshProjects, saveProject, addEnvironment, saveEnvironment, removeEnvironment }), [projects, selectedProject, selectedEnvironment, loading, error, selectProject, selectEnvironment, refreshProjects, saveProject, addEnvironment, saveEnvironment, removeEnvironment]);
   return <ProjectContext.Provider value={value}>{children}</ProjectContext.Provider>;
 }
 export function useProjects(): ProjectContextValue { const context = useContext(ProjectContext); if (!context) throw new Error('useProjects must be used inside ProjectProvider'); return context; }

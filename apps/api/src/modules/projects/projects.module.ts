@@ -4,5 +4,5 @@ import { FirebaseSessionGuard } from '../auth/firebase-session.guard.js';
 import { ProjectsController } from './projects.controller.js';
 import { ProjectsService } from './projects.service.js';
 
-@Module({ imports: [AuthModule], controllers: [ProjectsController], providers: [ProjectsService, FirebaseSessionGuard] })
+@Module({ imports: [AuthModule], controllers: [ProjectsController], providers: [ProjectsService, FirebaseSessionGuard], exports: [ProjectsService] })
 export class ProjectsModule {}

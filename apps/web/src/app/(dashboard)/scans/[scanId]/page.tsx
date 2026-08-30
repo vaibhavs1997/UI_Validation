@@ -1,4 +1,10 @@
-import { PlaceholderPage } from '@/components/common/PlaceholderPage';
-export default function Page() {
-  return <PlaceholderPage title="Scan Details" />;
-}
+'use client';
+import Link from 'next/link';
+import { useEffect, useState } from 'react';
+import { useParams } from 'next/navigation';
+import { useProjects } from '@/features/projects/project-context';
+import { cancelScan, getScan } from '@/features/scans/scan.service';
+import { ScanStatusBadge } from '@/features/scans/components/ScanStatusBadge';
+import type { Scan } from '@visionqa/contracts';
+
+export default function ScanDetailPage() { const { scanId } = useParams<{ scanId: string }>(); const { selectedProject, selectedEnvironment } = useProjects(); const [scan, setScan] = useState<Scan | null>(null); const [error, setError] = useState<string | null>(null); const [cancelling, setCancelling] = useState(false); useEffect(() => { if (!selectedProject || !scanId) return; void getScan(selectedProject.id, scanId).then(setScan).catch(() => setError('Unable to load scan.')); }, [selectedProject, scanId]); const cancel = async () => { if (!selectedProject || !scan) return; setCancelling(true); try { setScan(await cancelScan(selectedProject.id, scan.id)); } catch { setError('Unable to cancel scan.'); } finally { setCancelling(false); } }; return <section className="scan-page"><Link className="scan-back-link" href="/scans">← Scan history</Link><p className="dashboard-eyebrow">SCAN DETAIL</p><h1 className="dashboard-page-title">{scan?.module ?? 'Scan'}</h1>{error && <p className="scan-error" role="alert">{error}</p>}{scan && <div className="scan-detail-card"><div className="scan-detail-header"><div><h2>Scan status</h2><p>{selectedProject?.name} · {selectedEnvironment?.name ?? 'Environment'}</p></div><ScanStatusBadge status={scan.status} /></div><dl className="scan-detail-grid"><div><dt>Selected checks</dt><dd>{scan.checks.join(', ')}</dd></div><div><dt>Created</dt><dd>{new Date(scan.createdAt).toLocaleString()}</dd></div><div><dt>Started</dt><dd>{scan.startedAt ? new Date(scan.startedAt).toLocaleString() : 'Not started'}</dd></div><div><dt>Completed</dt><dd>{scan.completedAt ? new Date(scan.completedAt).toLocaleString() : 'Not completed'}</dd></div></dl><div className="scan-progress-line"><span style={{ width: `${scan.progress.percent}%` }} /></div><p className="scan-progress-label">{scan.progress.percent}% complete</p>{(scan.status === 'queued' || scan.status === 'running') && <button className="dashboard-secondary-button" type="button" disabled={cancelling} onClick={() => void cancel()}>{cancelling ? 'Cancelling…' : 'Cancel scan'}</button>}</div>}</section>; }

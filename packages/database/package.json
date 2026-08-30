@@ -27,6 +27,7 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
+    "@visionqa/contracts": "workspace:*",
     "@prisma/client": "^6.1.0",
     "firebase-admin": "^14.3.0"
   },
