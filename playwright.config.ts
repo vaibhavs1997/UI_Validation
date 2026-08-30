@@ -1,2 +1,8 @@
 import { defineConfig } from '@playwright/test';
-export default defineConfig({ testDir: './tests/e2e', webServer: { command: 'pnpm --filter @visionqa/web dev', port: 3000, reuseExistingServer: true }, use: { baseURL: 'http://localhost:3000' } });
+const baseURL = process.env.PLAYWRIGHT_BASE_URL ?? 'http://localhost:3000';
+
+export default defineConfig({
+  testDir: './tests/e2e',
+  webServer: process.env.PLAYWRIGHT_BASE_URL ? undefined : { command: 'pnpm --filter @visionqa/web dev', port: 3000, reuseExistingServer: true },
+  use: { baseURL },
+});

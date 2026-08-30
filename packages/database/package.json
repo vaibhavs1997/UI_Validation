@@ -7,6 +7,14 @@
     ".": {
       "types": "./src/index.ts",
       "import": "./src/index.ts"
+    },
+    "./firebase": {
+      "types": "./src/firebase/index.ts",
+      "import": "./dist/firebase/index.js"
+    },
+    "./contracts": {
+      "types": "./src/contracts/index.ts",
+      "import": "./dist/contracts/index.js"
     }
   },
   "scripts": {
@@ -19,7 +27,8 @@
     "db:studio": "prisma studio"
   },
   "dependencies": {
-    "@prisma/client": "^6.1.0"
+    "@prisma/client": "^6.1.0",
+    "firebase-admin": "^14.3.0"
   },
   "devDependencies": {
     "prisma": "^6.1.0",

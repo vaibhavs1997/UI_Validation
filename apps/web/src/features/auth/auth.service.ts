@@ -1,0 +1,14 @@
+import type { AuthResult, LoginCredentials, RegisterInput, RegisterResult } from './auth.types';
+import { createFirebaseUser, signInFirebase, signOutFirebase, type FirebaseAuthFailure } from '@/lib/firebase/auth';
+
+const apiUrl = process.env.NEXT_PUBLIC_API_URL ?? 'http://localhost:4000';
+async function exchangeSession(idToken: string): Promise<{ ok: boolean; message?: string }> { const response = await fetch(`${apiUrl}/api/v1/auth/session`, { method: 'POST', credentials: 'include', headers: { 'Content-Type': 'application/json' }, body: JSON.stringify({ idToken }) }); let message: string | undefined; try { const body = await response.json() as { message?: string | string[] }; message = Array.isArray(body.message) ? body.message.join(' ') : body.message; } catch { /* The server may return an empty error response. */ } return message ? { ok: response.ok, message } : { ok: response.ok }; }
+function failure(error: unknown): FirebaseAuthFailure { if (error instanceof Error && error.message.startsWith('Firebase is not configured.')) { console.error(error.message); return 'configuration'; } return typeof error === 'string' ? error as FirebaseAuthFailure : 'unavailable'; }
+export async function signIn(credentials: LoginCredentials): Promise<AuthResult> {
+  try { const credential = await signInFirebase(credentials.email, credentials.password); const response = await exchangeSession(await credential.user.getIdToken()); if (response.ok) return { ok: true }; await signOutFirebase(); return response.message ? { ok: false, code: 'session_error', message: response.message } : { ok: false, code: 'session_error' }; } catch (error) { const code = failure(error); return { ok: false, code: code === 'invalid_credentials' || code === 'auth_not_enabled' || code === 'configuration' ? code : 'unavailable' }; }
+}
+export async function register(input: RegisterInput): Promise<RegisterResult> {
+  try { const credential = await createFirebaseUser(input.name, input.email, input.password); const response = await exchangeSession(await credential.user.getIdToken()); if (response.ok) return { ok: true, user: { id: credential.user.uid, name: input.name, email: input.email } }; await signOutFirebase(); return response.message ? { ok: false, code: 'session_error', message: response.message } : { ok: false, code: 'session_error' }; } catch (error) { const code = failure(error); return { ok: false, code: code === 'email_in_use' ? 'duplicate_email' : code === 'auth_not_enabled' || code === 'configuration' ? code : 'unavailable' }; }
+}
+export async function logout(): Promise<void> { try { await fetch(`${apiUrl}/api/v1/auth/logout`, { method: 'POST', credentials: 'include' }); } finally { await signOutFirebase(); } }
+export async function getCurrentUser() { try { const response = await fetch(`${apiUrl}/api/v1/auth/me`, { credentials: 'include' }); return response.ok ? (await response.json()).user : null; } catch { return null; } }
