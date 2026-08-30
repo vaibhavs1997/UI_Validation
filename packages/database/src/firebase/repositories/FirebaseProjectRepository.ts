@@ -3,12 +3,12 @@ import { randomUUID } from 'node:crypto';
 import { getFirestoreDb } from '../firebase-admin.js';
 import type { CreateProjectInput, Environment, Project, ProjectRepository } from '../../contracts/index.js';
 
-function environment(id: string, data: Record<string, unknown>): Environment { return { id, name: String(data.name ?? ''), type: String(data.type ?? 'production'), baseUrl: String(data.baseUrl ?? ''), isDefault: Boolean(data.isDefault) }; }
+function environment(id: string, data: Record<string, unknown>, projectId?: string): Environment { return { id, ...(projectId ? { projectId } : {}), name: String(data.name ?? ''), type: String(data.type ?? 'production') as Environment['type'], baseUrl: String(data.baseUrl ?? ''), isDefault: Boolean(data.isDefault) }; }
 function project(id: string, data: Record<string, unknown>, environments: Environment[] = []): Project { return { id, name: String(data.name ?? ''), baseUrl: String(data.baseUrl ?? ''), createdBy: String(data.createdBy ?? ''), organizationId: typeof data.organizationId === 'string' ? data.organizationId : null, environments }; }
 
 export class FirebaseProjectRepository implements ProjectRepository {
   private collection() { return getFirestoreDb().collection('projects'); }
-  private async withEnvironments(id: string, data: Record<string, unknown>): Promise<Project> { const snapshot = await this.collection().doc(id).collection('environments').get(); return project(id, data, snapshot.docs.map((doc) => environment(doc.id, doc.data()))); }
+  private async withEnvironments(id: string, data: Record<string, unknown>): Promise<Project> { const snapshot = await this.collection().doc(id).collection('environments').get(); return project(id, data, snapshot.docs.map((doc) => environment(doc.id, doc.data(), id))); }
   async createProject(ownerId: string, input: CreateProjectInput): Promise<Project> {
     const db = getFirestoreDb(); const id = randomUUID(); const environmentId = randomUUID(); const projectRef = this.collection().doc(id); const environmentRef = projectRef.collection('environments').doc(environmentId); const now = FieldValue.serverTimestamp();
     const batch = db.batch();

@@ -12,20 +12,30 @@ export class FirebaseSessionService {
 
   async establish(idToken: string, reply: FastifyReply): Promise<{ user: AuthUser }> {
     if (!idToken) throw new UnauthorizedException('Unable to establish a session.');
+    let stage = 'token verification';
     try {
       const decoded = await getFirebaseAdminAuth().verifyIdToken(idToken);
-      const user = await getFirebaseAdminAuth().getUser(decoded.uid);
-      const profile = await this.users.upsertProfile({ id: user.uid, name: user.displayName ?? null, email: user.email ?? '' });
+      stage = 'profile persistence';
+      const fallbackUser: AuthUser = { id: decoded.uid, name: String(decoded.name ?? ''), email: String(decoded.email ?? '') };
+      let profile = fallbackUser;
+      try { profile = await this.users.upsertProfile({ id: decoded.uid, name: decoded.name ?? null, email: String(decoded.email ?? '') }); } catch (profileError) { console.error('[firebase-session] profile persistence skipped:', profileError instanceof Error ? profileError.message : String(profileError)); }
       const expiresIn = Number(process.env.AUTH_SESSION_TTL_SECONDS ?? 604800) * 1000;
-      const sessionCookie = await getFirebaseAdminAuth().createSessionCookie(idToken, { expiresIn });
-      reply.setCookie(cookieName(), sessionCookie, {
+      stage = 'session cookie creation';
+      let sessionValue = idToken;
+      let maxAge = 3600;
+      try { sessionValue = await getFirebaseAdminAuth().createSessionCookie(idToken, { expiresIn }); maxAge = Math.floor(expiresIn / 1000); } catch (cookieError) {
+        const detail = cookieError instanceof Error ? cookieError.message : String(cookieError);
+        if (!/EACCES|ECONN|ETIMEDOUT|ENOTFOUND|network/i.test(detail)) throw cookieError;
+        console.warn('[firebase-session] session cookie endpoint unavailable; using short-lived verified-token session.');
+      }
+      reply.setCookie(cookieName(), sessionValue, {
         httpOnly: true, sameSite: 'lax', secure: process.env.NODE_ENV === 'production', path: '/',
-        maxAge: Math.floor(expiresIn / 1000),
+        maxAge,
       });
       return { user: profile };
     } catch (error) {
       const detail = error instanceof Error ? error.message : String(error);
-      console.error('[firebase-session] session establishment failed:', detail);
+      console.error(`[firebase-session] session establishment failed during ${stage}:`, detail);
       if (/EACCES|ECONN|ETIMEDOUT|ENOTFOUND|network|Missing required Firebase/i.test(detail)) {
         throw new ServiceUnavailableException('Firebase is temporarily unreachable. Check the API server connection and try again.');
       }
@@ -40,11 +50,11 @@ export class FirebaseSessionService {
     const cookie = request.cookies?.[cookieName()];
     if (!cookie) return null;
     try {
-      const decoded = await getFirebaseAdminAuth().verifySessionCookie(cookie, true);
+      let decoded;
+      try { decoded = await getFirebaseAdminAuth().verifySessionCookie(cookie, true); } catch { decoded = await getFirebaseAdminAuth().verifyIdToken(cookie); }
       const profile = await this.users.findById(decoded.uid);
       if (profile) return profile;
-      const user = await getFirebaseAdminAuth().getUser(decoded.uid);
-      return await this.users.upsertProfile({ id: user.uid, name: user.displayName ?? null, email: user.email ?? '' });
+      return await this.users.upsertProfile({ id: decoded.uid, name: decoded.name ?? null, email: String(decoded.email ?? '') });
     } catch { return null; }
   }
 
