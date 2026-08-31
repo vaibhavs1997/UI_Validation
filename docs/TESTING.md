@@ -1,11 +1,15 @@
 # Testing
 
+Accessibility & SEO detector tests should cover accessible names, labels, image alt behavior, duplicate IDs, document language, metadata, and selected-check integrity. Browser integration coverage should use bounded fixtures and verify persisted findings without relying on live external sites.
 ## Test layout
 
 - Unit tests use Vitest and are colocated with the package or feature under test.
 - Current focused tests cover outbound network policy, DNS/private-address blocking, crawl frontier normalization/limits, robots parsing/policy, sitemap parsing, crawl-vs-sitemap comparison, browser-job validation, legacy API auth service behavior, project input validation, and scan orchestration. Browser interception, isolation, event collection, screenshot, and cancellation suites should use deterministic Playwright fixtures as they are expanded.
 - Browser result/evidence routes are included in typecheck, lint, and production build validation; live authorization/storage tests should use Firebase emulators or injected repositories rather than cloud credentials in the normal unit suite.
 - Visual geometry and detector tests should use bounded deterministic fixture pages; the current implementation does not claim live fixture E2E coverage until Chromium, Redis, and Firebase services are available together.
+- Annotation rendering is covered with isolated image-buffer tests for clipping, numbering, unusable geometry, and invalid input; storage authorization remains an integration concern for emulator-backed tests.
+- Interaction safety classification is covered with focused unit tests; live control behavior should use bounded local fixture pages and mocked Firebase/queue dependencies unless the full browser runtime is available.
+- Performance tests should assert LCP/CLS threshold boundaries, unavailable metrics, bounded resources, and selected-check filtering without asserting exact wall-clock timings. Compatibility tests should compare deterministic per-browser inputs and avoid claiming support when a browser runtime is unavailable.
 - Browser E2E tests are in `tests/e2e` and use Playwright.
 - E2E website fixtures are under `tests/fixtures/websites`.
 - No CI workflow files were found in the repository; local scripts and package scripts are the source of truth.

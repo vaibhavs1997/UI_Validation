@@ -4,6 +4,7 @@
   "type": "module",
   "scripts": {
     "dev": "pnpm run build && node dist/main.js",
+    "dev:clean": "node ../../scripts/free-port.mjs 4000 && pnpm run build && node dist/main.js",
     "dev:watch": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",

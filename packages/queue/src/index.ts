@@ -3,7 +3,7 @@ import { Queue } from 'bullmq';
 
 export const queueNames = { crawl: 'qa-crawl', http: 'qa-http', browser: 'qa-browser' } as const;
 export type QueueCapability = 'crawl' | 'http' | 'browser';
-export interface BaseScanJob { scanId: string; projectId: string; environmentId: string; targetUrl: string; checks: string[]; options: ScanOptions }
+export interface BaseScanJob { scanId: string; projectId: string; environmentId?: string; targetUrl: string; checks: string[]; options: ScanOptions }
 export interface CrawlJob extends BaseScanJob { capability: 'crawl' }
 export interface HttpScanJob extends BaseScanJob { capability: 'http' }
 export interface BrowserScanJob extends BaseScanJob { capability: 'browser'; module: QaModule; browsers: BrowserType[]; viewports: Viewport[] }

@@ -10,7 +10,7 @@ const groups = [
   ['QA CHECKS', false, [['Crawl & Site Structure', '/qa/crawl', '⌁'], ['Links & Resources', '/qa/links-resources', '↗'], ['Visual & Responsive', '/qa/visual-responsive', '▧'], ['Interactions & Forms', '/qa/interactions-forms', '⌘'], ['Browser & Network', '/qa/browser-network', '⊙'], ['Accessibility & SEO', '/qa/accessibility-seo', '✓'], ['Performance & Compatibility', '/qa/performance-compatibility', '↗'], ['Custom Checks', '/qa/custom-checks', '✦']]],
   ['AUTOMATION', false, [['Full Scan', '/full-scan', '◉'], ['Schedules', '/schedules', '◫']]],
   ['REPORTING', false, [['Reports', '/reports', '▤']]],
-  ['CONFIGURATION', false, [['Project Settings', '/settings/project', '⚙'], ['Environments', '/settings/project#environments', '◌'], ['Integrations', '/integrations', '⌘']]],
+  ['CONFIGURATION', false, [['Project Settings', '/settings/project', '⚙'], ['Integrations', '/integrations', '⌘']]],
 ] as const;
 
 export function AppSidebar({ open, onClose }: { open: boolean; onClose: () => void }) {

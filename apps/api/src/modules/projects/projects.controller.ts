@@ -9,9 +9,9 @@ const urlSchema = z.string().trim().url().refine((value) => {
 }, 'URL must use http or https.');
 const createSchema = z.object({
   name: z.string().trim().min(1).max(100),
-  baseUrl: urlSchema,
-  environmentName: z.string().trim().min(1).max(80),
-  environmentType: z.enum(['production', 'staging', 'qa', 'development', 'custom']),
+  baseUrl: urlSchema.optional(),
+  environmentName: z.string().trim().min(1).max(80).optional(),
+  environmentType: z.enum(['production', 'staging', 'qa', 'development', 'custom']).optional(),
 });
 const updateSchema = z.object({ name: z.string().trim().min(1).max(100) }).refine((value) => Object.keys(value).length > 0, 'At least one project field is required.');
 const environmentSchema = z.object({ name: z.string().trim().min(1).max(80), type: z.enum(['production', 'staging', 'qa', 'development', 'custom']), baseUrl: urlSchema, isDefault: z.boolean().optional() });
@@ -31,7 +31,8 @@ export class ProjectsController {
   async create(@Req() request: AuthenticatedRequest, @Body() body: CreateProjectRequest) {
     const parsed = createSchema.safeParse(body);
     if (!parsed.success) throw new BadRequestException('Invalid project details.');
-    const input = { ...parsed.data, baseUrl: normalizedUrl(parsed.data.baseUrl) };
+    if ((parsed.data.baseUrl || parsed.data.environmentName || parsed.data.environmentType) && !(parsed.data.baseUrl && parsed.data.environmentName && parsed.data.environmentType)) throw new BadRequestException('Provide all legacy environment fields together, or omit them.');
+    const input = { name: parsed.data.name, ...(parsed.data.baseUrl ? { baseUrl: normalizedUrl(parsed.data.baseUrl) } : {}), ...(parsed.data.environmentName ? { environmentName: parsed.data.environmentName } : {}), ...(parsed.data.environmentType ? { environmentType: parsed.data.environmentType } : {}) };
     return { project: await this.projects.create(request.user!.id, input) };
   }
 
@@ -53,6 +54,13 @@ export class ProjectsController {
     const project = await this.projects.update(request.user!.id, projectId, input);
     if (!project) throw new NotFoundException('Project not found.');
     return { project };
+  }
+
+  @Delete(':projectId')
+  async delete(@Req() request: AuthenticatedRequest, @Param('projectId') projectId: string) {
+    const deleted = await this.projects.delete(request.user!.id, projectId);
+    if (!deleted) throw new NotFoundException('Project not found.');
+    return { deleted: true };
   }
 
   @Post(':projectId/environments')
