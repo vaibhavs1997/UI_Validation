@@ -23,11 +23,16 @@ export interface EnvironmentRepository {
   update(ownerId: string, projectId: string, environmentId: string, input: UpdateEnvironmentInput): Promise<Environment | null>;
   delete(ownerId: string, projectId: string, environmentId: string): Promise<'deleted' | 'only-environment' | null>;
 }
-import type { CreateScanRequest, Project as ContractProject, Scan, ScanStatus } from '@visionqa/contracts';
+import type { CreateScanRequest, Project as ContractProject, Scan, ScanProgress, ScanStatus } from '@visionqa/contracts';
 export interface ScanRepository {
   create(ownerId: string, project: ContractProject, input: CreateScanRequest & { checks: string[]; requestedUrls: string[]; browsers: Scan['browsers']; viewports: Scan['viewports']; options: Scan['options'] }): Promise<Scan | null>;
   findById(ownerId: string, projectId: string, scanId: string): Promise<Scan | null>;
   findByProject(ownerId: string, projectId: string): Promise<Scan[] | null>;
   updateStatus(ownerId: string, projectId: string, scanId: string, status: ScanStatus, fields?: Partial<Pick<Scan, 'failureCode' | 'failureMessage' | 'progress'>>): Promise<Scan | null>;
   markStarted(scanId: string): Promise<void>;
+  updateProgress(scanId: string, progress: ScanProgress): Promise<void>;
+  isCancellationRequested(scanId: string): Promise<boolean>;
+  complete(scanId: string, summary: Record<string, unknown>): Promise<void>;
+  fail(scanId: string, failureCode: string, failureMessage: string): Promise<void>;
 }
+export type { BrowserExecutionRepository, BrowserFactQuery, EvidenceRepository, IssueRepository, ResourceRepository } from './storage.js';

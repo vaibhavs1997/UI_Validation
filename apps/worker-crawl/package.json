@@ -11,8 +11,12 @@
   },
   "dependencies": {
     "@visionqa/contracts": "workspace:*",
+    "@visionqa/database": "workspace:^",
     "@visionqa/network-policy": "workspace:*",
     "@visionqa/queue": "workspace:*",
+    "bullmq": "^5.34.3",
+    "fast-xml-parser": "^5.11.1",
+    "node-html-parser": "^9.0.2",
     "tsx": "^4.19.2"
   },
   "devDependencies": {

@@ -1,4 +1,14 @@
-import { PlaceholderPage } from '@/components/common/PlaceholderPage';
-export default function Page() {
-  return <PlaceholderPage title="Links Resources" />;
-}
+'use client';
+import { useState } from 'react';
+import Link from 'next/link';
+import type { Scan } from '@visionqa/contracts';
+import { ActiveQaTarget } from '@/features/projects/components/ActiveQaTarget';
+import { useProjects } from '@/features/projects/project-context';
+import { createScan } from '@/features/scans/scan.service';
+import { ScanStatusBadge } from '@/features/scans/components/ScanStatusBadge';
+
+const checks = [
+  ['broken-internal-links', 'Broken internal links'], ['broken-external-links', 'Broken external links'], ['redirect-quality', 'Redirect quality'], ['broken-images', 'Broken images'],
+  ['failed-scripts', 'Failed scripts'], ['failed-stylesheets', 'Failed stylesheets'], ['failed-fonts', 'Failed fonts'], ['failed-media', 'Failed media'],
+] as const;
+export default function LinksResourcesPage() { const { selectedProject, selectedEnvironment } = useProjects(); const [selected, setSelected] = useState<string[]>(checks.map(([id]) => id)); const [scan, setScan] = useState<Scan | null>(null); const [error, setError] = useState<string | null>(null); const [submitting, setSubmitting] = useState(false); const start = async () => { if (!selectedProject || !selectedEnvironment || !selected.length) return; setSubmitting(true); setError(null); try { setScan(await createScan(selectedProject.id, { environmentId: selectedEnvironment.id, module: 'links-resources', checks: selected, options: { maxExternalLinks: 100 } as Scan['options'] })); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to start link and resource validation.'); } finally { setSubmitting(false); } }; return <section className="scan-page"><p className="dashboard-eyebrow">QA CHECK · LINKS</p><h1 className="dashboard-page-title">Links &amp; Resources</h1><p className="dashboard-lead">Validate links and referenced resources with bounded, secure HTTP checks.</p><ActiveQaTarget /><div className="scan-config-card"><h2>Checks to run</h2>{checks.map(([id, label]) => <label className="scan-check" key={id}><input type="checkbox" checked={selected.includes(id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, id] : current.filter((item) => item !== id))} /> <span>{label}</span></label>)}<button className="dashboard-primary-button" type="button" disabled={submitting || !selected.length || !selectedProject || !selectedEnvironment} onClick={() => void start()}>{submitting ? 'Starting…' : 'Run Link & Resource Check'}</button>{error && <p className="scan-error" role="alert">{error}</p>}</div>{scan && <div className="scan-confirmation" role="status"><div><h2>Scan queued</h2><p>{selectedEnvironment?.name} · {scan.checks.join(', ')}</p></div><ScanStatusBadge status={scan.status} /><Link className="dashboard-card-action" href={`/scans/${scan.id}`}>View scan <b>→</b></Link></div>}</section>; }

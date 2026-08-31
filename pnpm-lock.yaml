@@ -152,12 +152,24 @@ importers:
       '@visionqa/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@visionqa/database':
+        specifier: workspace:*
+        version: link:../../packages/database
+      '@visionqa/detectors':
+        specifier: workspace:*
+        version: link:../../packages/detectors
       '@visionqa/network-policy':
         specifier: workspace:*
         version: link:../../packages/network-policy
       '@visionqa/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      bullmq:
+        specifier: ^5.58.5
+        version: 5.81.4
+      playwright:
+        specifier: ^1.62.1
+        version: 1.62.1
       tsx:
         specifier: ^4.19.2
         version: 4.23.12
@@ -171,12 +183,24 @@ importers:
       '@visionqa/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@visionqa/database':
+        specifier: workspace:^
+        version: link:../../packages/database
       '@visionqa/network-policy':
         specifier: workspace:*
         version: link:../../packages/network-policy
       '@visionqa/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      bullmq:
+        specifier: ^5.34.3
+        version: 5.81.4
+      fast-xml-parser:
+        specifier: ^5.11.1
+        version: 5.11.1
+      node-html-parser:
+        specifier: ^9.0.2
+        version: 9.0.2
       tsx:
         specifier: ^4.19.2
         version: 4.23.12
@@ -190,12 +214,21 @@ importers:
       '@visionqa/contracts':
         specifier: workspace:*
         version: link:../../packages/contracts
+      '@visionqa/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@visionqa/network-policy':
         specifier: workspace:*
         version: link:../../packages/network-policy
       '@visionqa/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      bullmq:
+        specifier: ^5.58.5
+        version: 5.81.4
+      node-html-parser:
+        specifier: ^7.0.1
+        version: 7.1.0
       tsx:
         specifier: ^4.19.2
         version: 4.23.12
@@ -1848,6 +1881,9 @@ packages:
   bignumber.js@9.3.1:
     resolution: {integrity: sha512-Ko0uX15oIUS7wJ3Rb30Fs6SkVbLmPBAKdlm7q9+ak9bbIeFf0MwuBsQV6z7+X768/cHsfg+WlysDWJcmthjsjQ==}
 
+  boolbase@1.0.0:
+    resolution: {integrity: sha512-JZOSA7Mo9sNGB8+UjSgzdLtokWAky1zbztM3WRLCbZ70/3cTANmQmOdR7y2g+J0e2WXywy1yS468tY+IruqEww==}
+
   brace-expansion@1.1.18:
     resolution: {integrity: sha512-Edep/X9fGqVNmzKBVsDYIOtD+z1tuezV70LBjdCst9Tqu76lsnvRiZ6oTic1n+/BIwX6QDGAO94PN4N2SADvtw==}
 
@@ -1971,6 +2007,13 @@ packages:
     resolution: {integrity: sha512-uV2QOWP2nWzsy2aMp8aRibhi9dlzF5Hgh5SHaB9OiTGEyDTiJJyx0uy51QXdyWbtAHNua4XJzUKca3OzKUd3vA==}
     engines: {node: '>= 8'}
 
+  css-select@5.2.2:
+    resolution: {integrity: sha512-TizTzUddG/xYLA3NXodFM0fSbNizXjOKhqiQQwvhlspadZokn1KDy0NZFS0wuEubIYAV5/c1/lAr0TaaFXEXzw==}
+
+  css-what@6.2.2:
+    resolution: {integrity: sha512-u/O3vwbptzhMs3L1fQE82ZSLHQQfto5gyZzwteVIEyeaY5Fc7R4dapF/BvRoSYFeqfBk4m0V1Vafq5Pjv25wvA==}
+    engines: {node: '>= 6'}
+
   csstype@3.2.3:
     resolution: {integrity: sha512-z1HGKcYy2xA8AGQfwrn0PAy+PB7X/GSj3UVJW9qKyn43xWa+gl5nXmU4qqLMRzWVLFC8KusUX8T/0kCiOYpAIQ==}
 
@@ -2020,6 +2063,19 @@ packages:
     resolution: {integrity: sha512-Btj2BOOO83o3WyH59e8MgXsxEQVcarkUOpEYrubB0urwnN10yQ364rsiByU11nZlqWYZm05i/of7io4mzihBtQ==}
     engines: {node: '>=8'}
 
+  dom-serializer@2.0.0:
+    resolution: {integrity: sha512-wIkAryiqt/nV5EQKqQpo3SToSOV9J0DnbJqwK7Wv/Trc92zIAYZ4FlMu+JPFW1DfGFt81ZTCGgDEabffXeLyJg==}
+
+  domelementtype@2.3.0:
+    resolution: {integrity: sha512-OLETBj6w0OsagBwdXnPdN0cnMfF9opN69co+7ZrbfPGrdpPVNBUj02spi6B1N7wChLQiPn4CSH/zJvXw56gmHw==}
+
+  domhandler@5.0.3:
+    resolution: {integrity: sha512-cgwlv/1iFQiFnU96XXgROh8xTeetsnJiDsTc7TYCLFd9+/WNkIqPTxiM/8pSd8VIrhXGTf1Ny1q1hquVqDJB5w==}
+    engines: {node: '>= 4'}
+
+  domutils@3.2.2:
+    resolution: {integrity: sha512-6kZKyUajlDuqlHKVX1w7gyslj9MPIXzIFiz/rGu35uC1wMi+kMhQwGhl4lt9unC9Vb9INnY9Z3/ZA3+FhASLaw==}
+
   dotenv@16.6.1:
     resolution: {integrity: sha512-uBq4egWHTcTt33a72vpSG0z3HnPuIl6NqYcTrKEg2azoEyl2hpW0zqlxysq2pK9HlDIHyHyakeYaYnSAwd8bow==}
     engines: {node: '>=12'}
@@ -2060,6 +2116,14 @@ packages:
   enhanced-resolve@5.24.5:
     resolution: {integrity: sha512-L1l8TNvomm6UVW5B253AGxQagSQr+vGwhMlrrfRS2qmhx46AMpMVJKQYLvWYbysTMY8VoicOvzHzoHMbyzB+4A==}
     engines: {node: '>=10.13.0'}
+
+  entities@4.5.0:
+    resolution: {integrity: sha512-V0hjH4dGPh9Ao5p0MoRY6BVqtwCjhz6vI5LT8AJ55H+4g9/4vbHx1I54fS0XuclLhDHArPQCiMjDxjaL8fPxhw==}
+    engines: {node: '>=0.12'}
+
+  entities@8.0.0:
+    resolution: {integrity: sha512-zwfzJecQ/Uej6tusMqwAqU/6KL2XaB2VZ2Jg54Je6ahNBGNH6Ek6g3jjNCF0fG9EWQKGZNddNjU5F1ZQn/sBnA==}
+    engines: {node: '>=20.19.0'}
 
   es-define-property@1.0.1:
     resolution: {integrity: sha512-e3nRfgfUZ4rNGL232gUgX06QNyyez04KdjFrF+LTRoOXmrOgFKDg4BCdsjW8EnT69eqdYGmRpJwiPVYNrCaW3g==}
@@ -2417,6 +2481,10 @@ packages:
   hasown@2.0.4:
     resolution: {integrity: sha512-T2UbfbBEF32wiepXIsMlTW9+dDYC6wMh/t/vYA4tuOMKqWz/n3vr1NFSxQiyP+zk2mXsoMA/i/7qV6LKut1t1A==}
     engines: {node: '>= 0.4'}
+
+  he@1.2.0:
+    resolution: {integrity: sha512-F/1DnUGPopORZi0ni+CvrCgHQ5FyEAHRLSApuYWMmrbSwoN2Mn/7k+Gl38gJnR7yyDZk6WLXwiGod1JOWNDKGw==}
+    hasBin: true
 
   html-entities@2.6.0:
     resolution: {integrity: sha512-kig+rMn/QOVRvr7c86gQ8lWXq+Hkv6CbAH1hLu+RG338StTpE8Z0b44SDVaqVu7HGKf27frdmUYEs9hTUX/cLQ==}
@@ -2802,6 +2870,15 @@ packages:
   node-gyp-build-optional-packages@5.2.2:
     resolution: {integrity: sha512-s+w+rBWnpTMwSFbaE0UXsRlg7hU4FjekKU4eyAih5T8nJuNZT1nNsskXpxmeqSK9UzkBl6UgRlnKc8hz8IEqOw==}
     hasBin: true
+
+  node-html-parser@7.1.0:
+    resolution: {integrity: sha512-iJo8b2uYGT40Y8BTyy5ufL6IVbN8rbm/1QK2xffXU/1a/v3AAa0d1YAoqBNYqaS4R/HajkWIpIfdE6KcyFh1AQ==}
+
+  node-html-parser@9.0.2:
+    resolution: {integrity: sha512-XhM0CTeF4Hkw3el7VCyasGJCEvp500Xf0s1J3ZigYfTOkVqZRQRY3EiAw1CbJzNrxaKSDthXiT9c/4CBwIJyfw==}
+
+  nth-check@2.1.1:
+    resolution: {integrity: sha512-lqjrjmaOoAnWfMmBPL+XNnynZh2+swxiX3WUE0s4yEHI6m+AwrK2UZOimIRl3X/4QctVqS8AiZjFqyOGrMXb/w==}
 
   nypm@0.6.9:
     resolution: {integrity: sha512-zxlE2yvSWZWmHcNdT3+5zV2lrCogeE9YOklHrR3dFjqutq5wO7GFDYLFDRXLsYnJzwvy/im9fYoxePvS0VTW0w==}
@@ -4346,8 +4423,7 @@ snapshots:
   '@next/swc-win32-x64-msvc@15.5.24':
     optional: true
 
-  '@nodable/entities@3.0.0':
-    optional: true
+  '@nodable/entities@3.0.0': {}
 
   '@nuxtjs/opencollective@0.3.2':
     dependencies:
@@ -4829,8 +4905,7 @@ snapshots:
   ansi-styles@6.2.3:
     optional: true
 
-  anynum@1.0.1:
-    optional: true
+  anynum@1.0.1: {}
 
   argparse@2.0.1: {}
 
@@ -4868,6 +4943,8 @@ snapshots:
   bcryptjs@2.4.3: {}
 
   bignumber.js@9.3.1: {}
+
+  boolbase@1.0.0: {}
 
   brace-expansion@1.1.18:
     dependencies:
@@ -4993,6 +5070,16 @@ snapshots:
       shebang-command: 2.0.0
       which: 2.0.2
 
+  css-select@5.2.2:
+    dependencies:
+      boolbase: 1.0.0
+      css-what: 6.2.2
+      domhandler: 5.0.3
+      domutils: 3.2.2
+      nth-check: 2.1.1
+
+  css-what@6.2.2: {}
+
   csstype@3.2.3: {}
 
   data-uri-to-buffer@4.0.1: {}
@@ -5019,6 +5106,24 @@ snapshots:
   destr@2.0.5: {}
 
   detect-libc@2.1.2: {}
+
+  dom-serializer@2.0.0:
+    dependencies:
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
+      entities: 4.5.0
+
+  domelementtype@2.3.0: {}
+
+  domhandler@5.0.3:
+    dependencies:
+      domelementtype: 2.3.0
+
+  domutils@3.2.2:
+    dependencies:
+      dom-serializer: 2.0.0
+      domelementtype: 2.3.0
+      domhandler: 5.0.3
 
   dotenv@16.6.1: {}
 
@@ -5067,6 +5172,10 @@ snapshots:
     dependencies:
       graceful-fs: 4.2.11
       tapable: 2.3.3
+
+  entities@4.5.0: {}
+
+  entities@8.0.0: {}
 
   es-define-property@1.0.1:
     optional: true
@@ -5280,7 +5389,6 @@ snapshots:
     dependencies:
       path-expression-matcher: 1.6.2
       xml-naming: 0.3.0
-    optional: true
 
   fast-xml-parser@5.11.1:
     dependencies:
@@ -5290,7 +5398,6 @@ snapshots:
       path-expression-matcher: 1.6.2
       strnum: 2.4.2
       xml-naming: 0.3.0
-    optional: true
 
   fastify-plugin@4.5.1: {}
 
@@ -5674,6 +5781,8 @@ snapshots:
       function-bind: 1.1.2
     optional: true
 
+  he@1.2.0: {}
+
   html-entities@2.6.0:
     optional: true
 
@@ -5756,8 +5865,7 @@ snapshots:
   is-stream@2.0.1:
     optional: true
 
-  is-unsafe@2.0.2:
-    optional: true
+  is-unsafe@2.0.2: {}
 
   isexe@2.0.0: {}
 
@@ -6062,6 +6170,20 @@ snapshots:
       detect-libc: 2.1.2
     optional: true
 
+  node-html-parser@7.1.0:
+    dependencies:
+      css-select: 5.2.2
+      he: 1.2.0
+
+  node-html-parser@9.0.2:
+    dependencies:
+      css-select: 5.2.2
+      entities: 8.0.0
+
+  nth-check@2.1.1:
+    dependencies:
+      boolbase: 1.0.0
+
   nypm@0.6.9:
     dependencies:
       citty: 0.2.2
@@ -6108,8 +6230,7 @@ snapshots:
 
   path-exists@4.0.0: {}
 
-  path-expression-matcher@1.6.2:
-    optional: true
+  path-expression-matcher@1.6.2: {}
 
   path-key@3.1.1: {}
 
@@ -6480,7 +6601,6 @@ snapshots:
   strnum@2.4.2:
     dependencies:
       anynum: 1.0.1
-    optional: true
 
   strtok3@10.3.5:
     dependencies:
@@ -6724,8 +6844,7 @@ snapshots:
   wrappy@1.0.2:
     optional: true
 
-  xml-naming@0.3.0:
-    optional: true
+  xml-naming@0.3.0: {}
 
   y18n@5.0.8: {}
 
