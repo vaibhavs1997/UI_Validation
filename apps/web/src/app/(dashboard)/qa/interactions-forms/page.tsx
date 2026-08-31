@@ -1,4 +1,10 @@
-import { PlaceholderPage } from '@/components/common/PlaceholderPage';
-export default function Page() {
-  return <PlaceholderPage title="Interactions Forms" />;
-}
+ 'use client';
+import Link from 'next/link';
+import { useState } from 'react';
+import { useProjects } from '@/features/projects/project-context';
+import { createScan } from '@/features/scans/scan.service';
+import type { Scan } from '@visionqa/contracts';
+import { ScanTargetInput } from '@/features/scans/components/ScanTargetInput';
+
+const checks = [['buttons', 'Buttons'], ['links-as-controls', 'Links behaving as controls'], ['menus', 'Menus'], ['tabs', 'Tabs'], ['accordions', 'Accordions'], ['dialogs', 'Dialogs and modals'], ['basic-form-validation', 'Basic form validation'], ['covered-controls', 'Covered controls'], ['disabled-controls', 'Disabled controls']] as const;
+export default function Page() { const { selectedProject } = useProjects(); const [url, setUrl] = useState(''); const [selected, setSelected] = useState<string[]>(['buttons', 'links-as-controls', 'menus', 'tabs', 'accordions', 'dialogs', 'basic-form-validation', 'covered-controls', 'disabled-controls']); const [scan, setScan] = useState<Scan | null>(null); const [error, setError] = useState<string | null>(null); const [busy, setBusy] = useState(false); const run = async () => { if (!selectedProject || !url.trim() || !selected.length) return; setBusy(true); setError(null); try { setScan(await createScan(selectedProject.id, { url, scope: 'single-page', module: 'interactions-forms', checks: selected, browsers: ['chromium'], viewports: [{ width: 1366, height: 768 }] })); } catch (reason) { setError(reason instanceof Error ? reason.message : 'Unable to start interaction validation.'); } finally { setBusy(false); } }; return <section className="scan-page"><p className="dashboard-eyebrow">QA CHECK · INTERACTIONS</p><h1 className="dashboard-page-title">Interactions &amp; Forms</h1><p className="dashboard-lead">Verify common controls safely without submitting forms or triggering destructive actions.</p><div className="scan-config-card"><ScanTargetInput value={url} onChange={setUrl} error={error} /><h2>Checks</h2>{checks.map(([id, label]) => <label className="scan-check" key={id}><input type="checkbox" checked={selected.includes(id)} onChange={(event) => setSelected((current) => event.target.checked ? [...current, id] : current.filter((item) => item !== id))} /> <span>{label}</span></label>)}{error && <p className="scan-inline-error" role="alert">{error}</p>}<button className="dashboard-primary-button" type="button" disabled={busy || !url.trim() || !selected.length || !selectedProject} onClick={() => void run()}>{busy ? 'Starting…' : 'Run interaction check'}</button></div>{scan && <div className="scan-confirmation" role="status"><p>{scan.target?.requestedUrl}</p><Link className="dashboard-card-action" href={`/scans/${scan.id}`}>View scan →</Link></div>}</section>; }

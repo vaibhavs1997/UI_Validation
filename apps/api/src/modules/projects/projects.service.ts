@@ -23,6 +23,10 @@ export class ProjectsService {
     return this.projects.updateProject(ownerId, projectId, input);
   }
 
+  delete(ownerId: string, projectId: string): Promise<boolean> {
+    return this.projects.deleteProject(ownerId, projectId);
+  }
+
   createEnvironment(ownerId: string, projectId: string, input: CreateEnvironmentInput): Promise<Environment | null> { return this.environments.create(ownerId, projectId, input); }
   listEnvironments(ownerId: string, projectId: string): Promise<Environment[] | null> { return this.environments.findByProject(ownerId, projectId); }
   findEnvironment(ownerId: string, projectId: string, environmentId: string): Promise<Environment | null> { return this.environments.findById(ownerId, projectId, environmentId); }

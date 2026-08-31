@@ -1,4 +1,10 @@
 export { InMemoryDetectorRegistry } from './registry.js';
 export { detectorCatalog } from './registry.js';
-export { detectVisual } from './visual.js';
+export { compareVisualViewports, detectVisual } from './visual.js';
+export { classifyInteraction, isSelectedInteraction } from './interactions.js';
+export type { InteractionCandidate, InteractionKind, InteractionSafety } from './interactions.js';
 export type { DetectorMetadata } from './registry.js';
+export { analyzeAccessibilitySeo } from './accessibility.js';
+export type { AccessibilityFinding, AccessibilityElement, PageMetadataSnapshot } from './accessibility.js';
+export { analyzePerformance, classifyCls, classifyLcp, performanceThresholds } from './performance.js';
+export type { PerformanceClassification, PerformanceResource, PerformanceSnapshot, PerformanceThresholds } from './performance.js';
