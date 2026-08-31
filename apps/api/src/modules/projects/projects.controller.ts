@@ -1,6 +1,5 @@
 import { BadRequestException, Body, ConflictException, Controller, Delete, Get, NotFoundException, Param, Patch, Post, Req, UseGuards } from '@nestjs/common';
 import { z } from 'zod';
-import type { FastifyRequest } from 'fastify';
 import type { CreateEnvironmentRequest, CreateProjectRequest, UpdateEnvironmentRequest, UpdateProjectRequest } from '@visionqa/contracts';
 import { FirebaseSessionGuard, type AuthenticatedRequest } from '../auth/firebase-session.guard.js';
 import { ProjectsService } from './projects.service.js';

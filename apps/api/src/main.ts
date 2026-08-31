@@ -1,6 +1,8 @@
 import 'reflect-metadata';
 import dotenv from 'dotenv';
-dotenv.config({ path: '../../.env' });
+import path from 'node:path';
+import { fileURLToPath } from 'node:url';
+dotenv.config({ path: path.resolve(path.dirname(fileURLToPath(import.meta.url)), '../../../.env') });
 import { NestFactory } from '@nestjs/core';
 import { FastifyAdapter } from '@nestjs/platform-fastify';
 import type { NestFastifyApplication } from '@nestjs/platform-fastify';

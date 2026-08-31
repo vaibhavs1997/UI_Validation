@@ -1,7 +1,7 @@
 import type { BrowserType, QaModule, ScanOptions, Viewport } from '@visionqa/contracts';
 import { Queue } from 'bullmq';
 
-export const queueNames = { crawl: 'qa:crawl', http: 'qa:http', browser: 'qa:browser' } as const;
+export const queueNames = { crawl: 'qa-crawl', http: 'qa-http', browser: 'qa-browser' } as const;
 export type QueueCapability = 'crawl' | 'http' | 'browser';
 export interface BaseScanJob { scanId: string; projectId: string; environmentId: string; targetUrl: string; checks: string[]; options: ScanOptions }
 export interface CrawlJob extends BaseScanJob { capability: 'crawl' }

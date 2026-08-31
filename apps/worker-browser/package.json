@@ -11,8 +11,12 @@
   },
   "dependencies": {
     "@visionqa/contracts": "workspace:*",
+    "@visionqa/detectors": "workspace:*",
+    "@visionqa/database": "workspace:*",
     "@visionqa/network-policy": "workspace:*",
     "@visionqa/queue": "workspace:*",
+    "bullmq": "^5.58.5",
+    "playwright": "^1.62.1",
     "tsx": "^4.19.2"
   },
   "devDependencies": {

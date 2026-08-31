@@ -1,0 +1,7 @@
+import { describe, expect, it, vi } from 'vitest';
+import type { Project, Scan } from '@visionqa/contracts';
+import { ScanOrchestrator } from './scans.orchestrator.js';
+
+const project: Project = { id: 'p1', name: 'Project', baseUrl: 'https://example.com', createdBy: 'u1', organizationId: null, environments: [{ id: 'e1', name: 'Production', type: 'production', baseUrl: 'https://example.com', isDefault: true }] };
+const scan = (checks: string[], module: Scan['module'] = 'crawl-site-structure'): Scan => ({ id: 's1', projectId: 'p1', environmentId: 'e1', createdBy: 'u1', type: 'module', module, checks, requestedUrls: [], browsers: ['chromium'], viewports: [{ width: 1440, height: 900 }], options: {}, status: 'queued', progress: { completed: 0, total: 1, percent: 0 }, createdAt: '', updatedAt: '' });
+describe('ScanOrchestrator', () => { it('dispatches only crawl work for crawl checks', async () => { const dispatcher = { dispatchCrawl: vi.fn(), dispatchHttp: vi.fn(), dispatchBrowser: vi.fn() }; await new ScanOrchestrator().dispatch(scan(['crawl']), project, dispatcher); expect(dispatcher.dispatchCrawl).toHaveBeenCalledOnce(); expect(dispatcher.dispatchHttp).not.toHaveBeenCalled(); expect(dispatcher.dispatchBrowser).not.toHaveBeenCalled(); }); it('groups checks by required capability', () => { expect(new ScanOrchestrator().buildPlan(scan(['crawl', 'robots'])).tasks).toEqual([{ capability: 'crawl', checks: ['crawl'] }, { capability: 'http', checks: ['robots'] }]); }); });
