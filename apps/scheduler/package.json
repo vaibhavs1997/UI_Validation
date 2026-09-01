@@ -10,7 +10,10 @@
     "test": "vitest run"
   },
   "dependencies": {
+    "@visionqa/contracts": "workspace:*",
+    "@visionqa/database": "workspace:*",
     "@visionqa/queue": "workspace:*",
+    "dotenv": "^17.4.2",
     "tsx": "^4.19.2"
   },
   "devDependencies": {

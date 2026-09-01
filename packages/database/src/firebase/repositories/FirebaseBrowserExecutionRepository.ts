@@ -3,17 +3,325 @@ import { createHash } from 'node:crypto';
 import type { BrowserFact, BrowserPageExecution } from '@visionqa/contracts';
 import type { BrowserExecutionRepository } from '../../contracts/storage.js';
 import { getFirestoreDb } from '../firebase-admin.js';
-const iso = (value: unknown): string | undefined => value && typeof (value as Timestamp).toDate === 'function' ? (value as Timestamp).toDate().toISOString() : typeof value === 'string' ? value : undefined;
-const executionId = (scanId: string, pageUrl: string, browser: string, viewport: { width: number; height: number }) => createHash('sha256').update(`${scanId}|${pageUrl}|${browser}|${viewport.width}x${viewport.height}`).digest('hex').slice(0, 40);
-function mapExecution(id: string, data: Record<string, unknown>): BrowserPageExecution { const completedAt = iso(data.completedAt); return { id, scanId: String(data.scanId), projectId: String(data.projectId), pageUrl: String(data.pageUrl), browser: String(data.browser) as BrowserPageExecution['browser'], viewport: data.viewport as BrowserPageExecution['viewport'], status: String(data.status) as BrowserPageExecution['status'], ...(typeof data.finalUrl === 'string' ? { finalUrl: data.finalUrl } : {}), ...(typeof data.httpStatus === 'number' ? { httpStatus: data.httpStatus } : {}), startedAt: iso(data.startedAt) ?? new Date(0).toISOString(), ...(completedAt ? { completedAt } : {}), ...(typeof data.durationMs === 'number' ? { durationMs: data.durationMs } : {}), consoleErrorCount: Number(data.consoleErrorCount ?? 0), pageErrorCount: Number(data.pageErrorCount ?? 0), failedRequestCount: Number(data.failedRequestCount ?? 0), ...(typeof data.screenshotEvidenceId === 'string' ? { screenshotEvidenceId: data.screenshotEvidenceId } : {}), ...(data.performance && typeof data.performance === 'object' ? { performance: data.performance as BrowserPageExecution['performance'] } : {}) }; }
+const iso = (value: unknown): string | undefined =>
+  value && typeof (value as Timestamp).toDate === 'function'
+    ? (value as Timestamp).toDate().toISOString()
+    : typeof value === 'string'
+      ? value
+      : undefined;
+const executionId = (
+  scanId: string,
+  pageUrl: string,
+  browser: string,
+  viewport: { width: number; height: number },
+) =>
+  createHash('sha256')
+    .update(
+      `${scanId}|${pageUrl}|${browser}|${viewport.width}x${viewport.height}`,
+    )
+    .digest('hex')
+    .slice(0, 40);
+function mapExecution(
+  id: string,
+  data: Record<string, unknown>,
+): BrowserPageExecution {
+  const completedAt = iso(data.completedAt);
+  return {
+    id,
+    scanId: String(data.scanId),
+    projectId: String(data.projectId),
+    pageUrl: String(data.pageUrl),
+    ...(typeof data.pageTargetId === 'string'
+      ? { pageTargetId: data.pageTargetId }
+      : {}),
+    ...(typeof data.taskKey === 'string' ? { taskKey: data.taskKey } : {}),
+    browser: String(data.browser) as BrowserPageExecution['browser'],
+    viewport: data.viewport as BrowserPageExecution['viewport'],
+    status: String(data.status) as BrowserPageExecution['status'],
+    ...(typeof data.finalUrl === 'string' ? { finalUrl: data.finalUrl } : {}),
+    ...(typeof data.httpStatus === 'number'
+      ? { httpStatus: data.httpStatus }
+      : {}),
+    startedAt: iso(data.startedAt) ?? new Date(0).toISOString(),
+    ...(completedAt ? { completedAt } : {}),
+    ...(typeof data.durationMs === 'number'
+      ? { durationMs: data.durationMs }
+      : {}),
+    consoleErrorCount: Number(data.consoleErrorCount ?? 0),
+    pageErrorCount: Number(data.pageErrorCount ?? 0),
+    failedRequestCount: Number(data.failedRequestCount ?? 0),
+    ...(typeof data.screenshotEvidenceId === 'string'
+      ? { screenshotEvidenceId: data.screenshotEvidenceId }
+      : {}),
+    ...(data.performance && typeof data.performance === 'object'
+      ? { performance: data.performance as BrowserPageExecution['performance'] }
+      : {}),
+    ...(data.visualSignals && typeof data.visualSignals === 'object'
+      ? {
+          visualSignals:
+            data.visualSignals as BrowserPageExecution['visualSignals'],
+        }
+      : {}),
+  };
+}
 export class FirebaseBrowserExecutionRepository implements BrowserExecutionRepository {
-  private executions(projectId: string, scanId: string) { return getFirestoreDb().collection('projects').doc(projectId).collection('scans').doc(scanId).collection('browserExecutions'); }
-  async create(input: Omit<BrowserPageExecution, 'id' | 'startedAt'>) { const ref = this.executions(input.projectId, input.scanId).doc(executionId(input.scanId, input.pageUrl, input.browser, input.viewport)); await ref.set({ ...input, id: ref.id, status: 'RUNNING', startedAt: FieldValue.serverTimestamp() }, { merge: true }); return mapExecution(ref.id, (await ref.get()).data()!); }
-  async markCompleted(scanId: string, executionIdValue: string, fields: Partial<Pick<BrowserPageExecution, 'status' | 'finalUrl' | 'httpStatus' | 'completedAt' | 'durationMs' | 'consoleErrorCount' | 'pageErrorCount' | 'failedRequestCount' | 'screenshotEvidenceId'>>): Promise<void> { const snapshot = await getFirestoreDb().collectionGroup('browserExecutions').where('scanId', '==', scanId).where('id', '==', executionIdValue).limit(1).get(); if (!snapshot.empty) await snapshot.docs[0]!.ref.set({ ...fields, completedAt: fields.completedAt ?? FieldValue.serverTimestamp() }, { merge: true }); }
-  async addFacts(facts: Omit<BrowserFact, 'id' | 'timestamp'>[]): Promise<void> { for (const fact of facts.slice(0, 2000)) { const id = createHash('sha256').update(`${fact.scanId}|${fact.executionId}|${fact.kind}|${fact.url ?? ''}|${fact.message ?? ''}`).digest('hex').slice(0, 40); const snapshot = await getFirestoreDb().collectionGroup('browserExecutions').where('scanId', '==', fact.scanId).where('id', '==', fact.executionId).limit(1).get(); if (!snapshot.empty) await snapshot.docs[0]!.ref.collection('facts').doc(id).set({ ...fact, id, timestamp: FieldValue.serverTimestamp() }, { merge: true }); } }
-  async findByScan(ownerId: string, projectId: string, scanId: string) { const project = await getFirestoreDb().collection('projects').doc(projectId).get(); if (!project.exists || project.data()?.createdBy !== ownerId) return { executions: [], facts: [] }; const executionsSnapshot = await this.executions(projectId, scanId).get(); const executions = executionsSnapshot.docs.map((doc) => mapExecution(doc.id, doc.data())); const facts: BrowserFact[] = []; for (const execution of executionsSnapshot.docs) { const factsSnapshot = await execution.ref.collection('facts').limit(500).get(); facts.push(...factsSnapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id, timestamp: iso(doc.data().timestamp) ?? new Date(0).toISOString() } as BrowserFact))); } return { executions, facts }; }
-  private async owns(ownerId: string, projectId: string) { const project = await getFirestoreDb().collection('projects').doc(projectId).get(); return project.exists && project.data()?.createdBy === ownerId; }
-  async findPages(ownerId: string, projectId: string, scanId: string, options: { limit?: number; cursor?: string } = {}) { if (!(await this.owns(ownerId, projectId))) return { executions: [] }; const limit = Math.min(options.limit ?? 50, 100); let query = this.executions(projectId, scanId).orderBy('startedAt', 'desc').limit(limit) as FirebaseFirestore.Query; if (options.cursor) { const cursor = await this.executions(projectId, scanId).doc(options.cursor).get(); if (cursor.exists) query = query.startAfter(cursor); } const snapshot = await query.get(); return { executions: snapshot.docs.map((doc) => mapExecution(doc.id, doc.data())), ...(snapshot.size === limit && snapshot.docs.at(-1) ? { nextCursor: snapshot.docs.at(-1)!.id } : {}) }; }
-  async findFacts(ownerId: string, projectId: string, scanId: string, kind: BrowserFact['kind'], options: import('../../contracts/storage.js').BrowserFactQuery = {}) { if (!(await this.owns(ownerId, projectId))) return { facts: [] }; const limit = Math.min(options.limit ?? 100, 100); let query = getFirestoreDb().collectionGroup('facts').where('scanId', '==', scanId).where('kind', '==', kind).limit(limit) as FirebaseFirestore.Query; if (options.resourceType) query = query.where('resourceType', '==', options.resourceType); if (options.statusCode !== undefined) query = query.where('status', '==', options.statusCode); if (options.cursor) query = query.startAfter(options.cursor); const snapshot = await query.get(); let facts = snapshot.docs.map((doc) => ({ ...doc.data(), id: doc.id, timestamp: iso(doc.data().timestamp) ?? new Date(0).toISOString() } as BrowserFact)); if (options.type) facts = facts.filter((fact) => fact.type === options.type); if (options.result) facts = facts.filter((fact) => fact.kind === 'NETWORK_POLICY_BLOCKED' ? options.result === 'BLOCKED_BY_POLICY' : fact.kind === 'FAILED_REQUEST' ? options.result === 'FAILED' : fact.kind === 'RESPONSE' && (fact.status ?? 0) >= 400 ? options.result === 'HTTP_ERROR' : options.result === 'SUCCESS'); return { facts, ...(snapshot.size === limit && snapshot.docs.at(-1) ? { nextCursor: snapshot.docs.at(-1)!.id } : {}) }; }
-  async summary(ownerId: string, projectId: string, scanId: string) { const result = await this.findByScan(ownerId, projectId, scanId); const pages = new Set(result.executions.map((execution) => execution.pageUrl)); return { pagesExecuted: result.executions.length, uniquePages: pages.size, consoleErrors: result.facts.filter((fact) => fact.kind === 'CONSOLE' && fact.type === 'error').length, javascriptErrors: result.facts.filter((fact) => fact.kind === 'PAGE_ERROR').length, failedRequests: result.facts.filter((fact) => fact.kind === 'FAILED_REQUEST').length, httpErrors: result.facts.filter((fact) => fact.kind === 'RESPONSE' && (fact.status ?? 0) >= 400).length, networkPolicyBlocked: result.facts.filter((fact) => fact.kind === 'NETWORK_POLICY_BLOCKED').length, screenshots: result.executions.filter((execution) => execution.screenshotEvidenceId).length }; }
+  private executions(projectId: string, scanId: string) {
+    return getFirestoreDb()
+      .collection('projects')
+      .doc(projectId)
+      .collection('scans')
+      .doc(scanId)
+      .collection('browserExecutions');
+  }
+  async create(input: Omit<BrowserPageExecution, 'id' | 'startedAt'>) {
+    const ref = this.executions(input.projectId, input.scanId).doc(
+      executionId(input.scanId, input.pageUrl, input.browser, input.viewport),
+    );
+    const existing = await ref.get();
+    if (existing.exists) return mapExecution(ref.id, existing.data()!);
+    await ref.set(
+      {
+        ...input,
+        id: ref.id,
+        status: input.status,
+        startedAt: FieldValue.serverTimestamp(),
+      },
+      { merge: true },
+    );
+    return mapExecution(ref.id, (await ref.get()).data()!);
+  }
+  async markStarted(scanId: string, executionIdValue: string): Promise<void> {
+    const snapshot = await getFirestoreDb()
+      .collectionGroup('browserExecutions')
+      .where('scanId', '==', scanId)
+      .where('id', '==', executionIdValue)
+      .limit(1)
+      .get();
+    if (!snapshot.empty) {
+      const data = snapshot.docs[0]!.data();
+      if (data.status === 'QUEUED')
+        await snapshot.docs[0]!.ref.set(
+          { status: 'RUNNING', startedAt: FieldValue.serverTimestamp() },
+          { merge: true },
+        );
+    }
+  }
+  async cancelPending(scanId: string): Promise<void> {
+    const snapshot = await getFirestoreDb()
+      .collectionGroup('browserExecutions')
+      .where('scanId', '==', scanId)
+      .get();
+    for (const doc of snapshot.docs)
+      if (doc.data().status === 'QUEUED')
+        await doc.ref.set(
+          { status: 'CANCELLED', completedAt: FieldValue.serverTimestamp() },
+          { merge: true },
+        );
+  }
+  async markCompleted(
+    scanId: string,
+    executionIdValue: string,
+    fields: Partial<
+      Pick<
+        BrowserPageExecution,
+        | 'status'
+        | 'finalUrl'
+        | 'httpStatus'
+        | 'completedAt'
+        | 'durationMs'
+        | 'consoleErrorCount'
+        | 'pageErrorCount'
+        | 'failedRequestCount'
+        | 'screenshotEvidenceId'
+        | 'performance'
+        | 'visualSignals'
+      >
+    >,
+  ): Promise<void> {
+    const snapshot = await getFirestoreDb()
+      .collectionGroup('browserExecutions')
+      .where('scanId', '==', scanId)
+      .where('id', '==', executionIdValue)
+      .limit(1)
+      .get();
+    if (!snapshot.empty) {
+      const ref = snapshot.docs[0]!.ref;
+      const current = snapshot.docs[0]!.data();
+      if (
+        current.status === 'CANCELLED' ||
+        (current.status === 'COMPLETED' && fields.status !== 'COMPLETED')
+      )
+        return;
+      await ref.set(
+        {
+          ...fields,
+          completedAt: fields.completedAt ?? FieldValue.serverTimestamp(),
+        },
+        { merge: true },
+      );
+    }
+  }
+  async addFacts(
+    facts: Omit<BrowserFact, 'id' | 'timestamp'>[],
+  ): Promise<void> {
+    for (const fact of facts.slice(0, 2000)) {
+      const id = createHash('sha256')
+        .update(
+          `${fact.scanId}|${fact.executionId}|${fact.kind}|${fact.url ?? ''}|${fact.message ?? ''}`,
+        )
+        .digest('hex')
+        .slice(0, 40);
+      const snapshot = await getFirestoreDb()
+        .collectionGroup('browserExecutions')
+        .where('scanId', '==', fact.scanId)
+        .where('id', '==', fact.executionId)
+        .limit(1)
+        .get();
+      if (!snapshot.empty)
+        await snapshot.docs[0]!.ref.collection('facts')
+          .doc(id)
+          .set(
+            { ...fact, id, timestamp: FieldValue.serverTimestamp() },
+            { merge: true },
+          );
+    }
+  }
+  async findByScan(ownerId: string, projectId: string, scanId: string) {
+    const project = await getFirestoreDb()
+      .collection('projects')
+      .doc(projectId)
+      .get();
+    if (!project.exists || project.data()?.createdBy !== ownerId)
+      return { executions: [], facts: [] };
+    const executionsSnapshot = await this.executions(projectId, scanId).get();
+    const executions = executionsSnapshot.docs.map((doc) =>
+      mapExecution(doc.id, doc.data()),
+    );
+    const facts: BrowserFact[] = [];
+    for (const execution of executionsSnapshot.docs) {
+      const factsSnapshot = await execution.ref
+        .collection('facts')
+        .limit(500)
+        .get();
+      facts.push(
+        ...factsSnapshot.docs.map(
+          (doc) =>
+            ({
+              ...doc.data(),
+              id: doc.id,
+              timestamp: iso(doc.data().timestamp) ?? new Date(0).toISOString(),
+            }) as BrowserFact,
+        ),
+      );
+    }
+    return { executions, facts };
+  }
+  private async owns(ownerId: string, projectId: string) {
+    const project = await getFirestoreDb()
+      .collection('projects')
+      .doc(projectId)
+      .get();
+    return project.exists && project.data()?.createdBy === ownerId;
+  }
+  async findPages(
+    ownerId: string,
+    projectId: string,
+    scanId: string,
+    options: { limit?: number; cursor?: string } = {},
+  ) {
+    if (!(await this.owns(ownerId, projectId))) return { executions: [] };
+    const limit = Math.min(options.limit ?? 50, 100);
+    let query = this.executions(projectId, scanId)
+      .orderBy('startedAt', 'desc')
+      .limit(limit) as FirebaseFirestore.Query;
+    if (options.cursor) {
+      const cursor = await this.executions(projectId, scanId)
+        .doc(options.cursor)
+        .get();
+      if (cursor.exists) query = query.startAfter(cursor);
+    }
+    const snapshot = await query.get();
+    return {
+      executions: snapshot.docs.map((doc) => mapExecution(doc.id, doc.data())),
+      ...(snapshot.size === limit && snapshot.docs.at(-1)
+        ? { nextCursor: snapshot.docs.at(-1)!.id }
+        : {}),
+    };
+  }
+  async findFacts(
+    ownerId: string,
+    projectId: string,
+    scanId: string,
+    kind: BrowserFact['kind'],
+    options: import('../../contracts/storage.js').BrowserFactQuery = {},
+  ) {
+    if (!(await this.owns(ownerId, projectId))) return { facts: [] };
+    const limit = Math.min(options.limit ?? 100, 100);
+    let query = getFirestoreDb()
+      .collectionGroup('facts')
+      .where('scanId', '==', scanId)
+      .where('kind', '==', kind)
+      .limit(limit) as FirebaseFirestore.Query;
+    if (options.resourceType)
+      query = query.where('resourceType', '==', options.resourceType);
+    if (options.statusCode !== undefined)
+      query = query.where('status', '==', options.statusCode);
+    if (options.cursor) query = query.startAfter(options.cursor);
+    const snapshot = await query.get();
+    let facts = snapshot.docs.map(
+      (doc) =>
+        ({
+          ...doc.data(),
+          id: doc.id,
+          timestamp: iso(doc.data().timestamp) ?? new Date(0).toISOString(),
+        }) as BrowserFact,
+    );
+    if (options.type)
+      facts = facts.filter((fact) => fact.type === options.type);
+    if (options.result)
+      facts = facts.filter((fact) =>
+        fact.kind === 'NETWORK_POLICY_BLOCKED'
+          ? options.result === 'BLOCKED_BY_POLICY'
+          : fact.kind === 'FAILED_REQUEST'
+            ? options.result === 'FAILED'
+            : fact.kind === 'RESPONSE' && (fact.status ?? 0) >= 400
+              ? options.result === 'HTTP_ERROR'
+              : options.result === 'SUCCESS',
+      );
+    return {
+      facts,
+      ...(snapshot.size === limit && snapshot.docs.at(-1)
+        ? { nextCursor: snapshot.docs.at(-1)!.id }
+        : {}),
+    };
+  }
+  async summary(ownerId: string, projectId: string, scanId: string) {
+    const result = await this.findByScan(ownerId, projectId, scanId);
+    const completed = result.executions.filter(
+      (execution) => execution.status === 'COMPLETED',
+    );
+    const pages = new Set(completed.map((execution) => execution.pageUrl));
+    return {
+      pagesExecuted: completed.length,
+      uniquePages: pages.size,
+      consoleErrors: result.facts.filter(
+        (fact) => fact.kind === 'CONSOLE' && fact.type === 'error',
+      ).length,
+      javascriptErrors: result.facts.filter(
+        (fact) => fact.kind === 'PAGE_ERROR',
+      ).length,
+      failedRequests: result.facts.filter(
+        (fact) => fact.kind === 'FAILED_REQUEST',
+      ).length,
+      httpErrors: result.facts.filter(
+        (fact) => fact.kind === 'RESPONSE' && (fact.status ?? 0) >= 400,
+      ).length,
+      networkPolicyBlocked: result.facts.filter(
+        (fact) => fact.kind === 'NETWORK_POLICY_BLOCKED',
+      ).length,
+      screenshots: completed.filter(
+        (execution) => execution.screenshotEvidenceId,
+      ).length,
+    };
+  }
 }

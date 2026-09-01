@@ -65,6 +65,9 @@ importers:
       '@visionqa/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      '@visionqa/reporting':
+        specifier: workspace:*
+        version: link:../../packages/reporting
       bcryptjs:
         specifier: 2.4.3
         version: 2.4.3
@@ -96,9 +99,18 @@ importers:
 
   apps/scheduler:
     dependencies:
+      '@visionqa/contracts':
+        specifier: workspace:*
+        version: link:../../packages/contracts
+      '@visionqa/database':
+        specifier: workspace:*
+        version: link:../../packages/database
       '@visionqa/queue':
         specifier: workspace:*
         version: link:../../packages/queue
+      dotenv:
+        specifier: ^17.4.2
+        version: 17.4.2
       tsx:
         specifier: ^4.19.2
         version: 4.23.12
@@ -248,7 +260,11 @@ importers:
         specifier: ^3.24.1
         version: 3.25.76
 
-  packages/contracts: {}
+  packages/contracts:
+    dependencies:
+      luxon:
+        specifier: 3.7.2
+        version: 3.7.2
 
   packages/database:
     dependencies:
@@ -316,7 +332,11 @@ importers:
         specifier: ^5.4.1
         version: 5.11.1
 
-  packages/reporting: {}
+  packages/reporting:
+    dependencies:
+      '@visionqa/contracts':
+        specifier: workspace:*
+        version: link:../contracts
 
   packages/ui:
     dependencies:

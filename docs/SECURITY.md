@@ -27,6 +27,10 @@ Accessibility & SEO collection is bounded to selected DOM metadata and element s
 - Queue payloads must not contain credentials, cookies, ID tokens, private keys, or target credentials.
 - Interaction validation never submits forms or activates controls classified as destructive, potentially destructive, or unknown. Candidate links remain under the existing browser request interception and outbound network policy; synthetic values are not populated into sensitive fields.
 - Performance collection is passive: it reads browser timing/resource entries, caps resource rows, does not fetch resources through a second client, and does not trigger page interactions or downloads. Browser comparisons use the existing intercepted executions.
+- Custom Checks are data-only declarative rules. Definitions are bounded by category, operator, selector, expected-value, and project/scan limits; selectors are limited to safe bounded CSS syntax. Custom Checks cannot execute JavaScript, `eval`, `new Function`, shell commands, Playwright scripts, interactions, or arbitrary network requests. Preview validates and interprets definitions without fetching a supplied URL, and scan creation snapshots the selected version.
+- Browser compatibility comparison uses only normalized, bounded console/request facts and deterministic visual support signals from the existing intercepted executions. Requested engines are never silently substituted, and unavailable/failed engines remain visible as partial coverage rather than being reported as passed.
+- Full Scan does not add a network or worker-selection escape hatch. Its plan is built server-side from the detector catalog, workers reload the persisted scan target and custom snapshots, and module/check selection is preserved when shared browser facts are evaluated. Site-wide browser pages come only from the persisted fetched HTML crawl inventory; every selected page is canonicalized, same-origin checked, and revalidated through `OutboundNetworkPolicy` before navigation. Queue payloads cannot expand the page set. Cancellation remains authoritative over late capability completion, including queued browser page contexts.
+- Schedules do not create a second scan execution path. Schedule creation validates ownership, recurrence, target, modules, browsers, viewports, and custom checks through the normal scan validation service; every run revalidates the saved target and reloads current project-owned custom checks before snapshotting them. The scheduler-to-API trigger uses a server-only `SCHEDULER_INTERNAL_TOKEN`; it performs no target request and has no worker queue access. Transactional occurrence claims, deterministic run IDs, and scan idempotency keys protect against duplicate scheduler instances and retries. Disabled or archived schedules cannot produce future automatic runs.
 - Do not log raw session values or authentication tokens. Existing authentication diagnostics log error details; keep those logs free of secrets.
 
 ## Outbound network access
@@ -43,6 +47,8 @@ The crawl and HTTP workers use secure HTTP clients that validate and resolve eac
 - CORS is enabled in `apps/api/src/main.ts` with the configured `WEB_ORIGIN` and credentials.
 
 Known gaps: no rate-limiting implementation was found; webhook verification is not implemented; no centralized structured-log redaction layer is present; and organization membership roles are not enforced in the Firebase path.
+
+Reports are generated only from server-side, project-authorized persisted scan/result repositories. Generation rejects non-terminal scans, never navigates to the target site, never reruns detectors or changes Issue/Scan state, and stores immutable versioned snapshots with a checksum. Target URLs omit query/hash credentials, custom values are redacted, report HTML escapes target-derived text, evidence is represented only by private metadata references, and report deletion removes only the report snapshot.
 
 ## Security invariants
 

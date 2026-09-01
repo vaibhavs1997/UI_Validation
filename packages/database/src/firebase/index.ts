@@ -9,3 +9,7 @@ export * from './repositories/FirebaseIssueRepository.js';
 export * from './repositories/FirebaseBrowserExecutionRepository.js';
 export * from './FirebaseEvidenceStorage.js';
 export * from './repositories/FirebaseEvidenceRepository.js';
+export * from './repositories/FirebaseCustomCheckRepository.js';
+export * from './repositories/FirebaseCustomCheckResultRepository.js';
+export * from './repositories/FirebaseScheduleRepository.js';
+export * from './repositories/FirebaseReportRepository.js';
