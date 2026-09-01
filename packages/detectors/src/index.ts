@@ -8,3 +8,7 @@ export { analyzeAccessibilitySeo } from './accessibility.js';
 export type { AccessibilityFinding, AccessibilityElement, PageMetadataSnapshot } from './accessibility.js';
 export { analyzePerformance, classifyCls, classifyLcp, performanceThresholds } from './performance.js';
 export type { PerformanceClassification, PerformanceResource, PerformanceSnapshot, PerformanceThresholds } from './performance.js';
+export { BrowserCompatibilityComparisonService, normalizeBrowserError, normalizeRequestIdentity } from './compatibility.js';
+export type { CompatibilityFinding } from '@visionqa/contracts';
+export { CUSTOM_CHECK_LIMITS, customCheckRuleSummary, evaluateCustomCheck, validateCustomCheckDefinition } from './custom.js';
+export type { CustomEvaluationContext, CustomCheckValidation } from './custom.js';

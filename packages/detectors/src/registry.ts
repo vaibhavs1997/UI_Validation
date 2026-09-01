@@ -59,8 +59,8 @@ export const detectorCatalog: DetectorMetadata[] = [
   { id: 'transfer-size', name: 'Transfer size', module: 'performance-compatibility', requirements: { browser: true }, status: 'available' },
   { id: 'render-blocking', name: 'Render-blocking resources', module: 'performance-compatibility', requirements: { browser: true, dom: true }, status: 'available' },
   { id: 'image-performance', name: 'Image performance', module: 'performance-compatibility', requirements: { browser: true, dom: true }, status: 'available' },
-  { id: 'browser-console-errors', name: 'Browser console differences', module: 'performance-compatibility', requirements: { browser: true }, status: 'available' },
-  { id: 'browser-request-failures', name: 'Browser request differences', module: 'performance-compatibility', requirements: { browser: true }, status: 'available' },
+  { id: 'browser-console-differences', name: 'Browser console differences', module: 'performance-compatibility', requirements: { browser: true }, status: 'available' },
+  { id: 'browser-request-differences', name: 'Browser request differences', module: 'performance-compatibility', requirements: { browser: true }, status: 'available' },
   { id: 'browser-render-differences', name: 'Browser render differences', module: 'performance-compatibility', requirements: { browser: true, dom: true }, status: 'available' },
   { id: 'browser-feature-failures', name: 'Browser feature failures', module: 'performance-compatibility', requirements: { browser: true }, status: 'available' },
 ];

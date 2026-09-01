@@ -3,8 +3,8 @@
   "private": true,
   "type": "module",
   "scripts": {
-    "dev": "pnpm run build && node dist/main.js",
-    "dev:clean": "node ../../scripts/free-port.mjs 4000 && pnpm run build && node dist/main.js",
+    "dev": "tsx src/main.ts",
+    "dev:clean": "node ../../scripts/free-port.mjs 4000 && tsx src/main.ts",
     "dev:watch": "tsx watch src/main.ts",
     "build": "tsc -p tsconfig.json",
     "start": "node dist/main.js",
@@ -23,6 +23,7 @@
     "@visionqa/database": "workspace:*",
     "@visionqa/detectors": "workspace:*",
     "@visionqa/queue": "workspace:*",
+    "@visionqa/reporting": "workspace:*",
     "bcryptjs": "2.4.3",
     "dotenv": "^17.4.2",
     "fastify": "^5.1.0",
